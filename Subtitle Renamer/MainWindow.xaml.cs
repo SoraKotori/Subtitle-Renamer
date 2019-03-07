@@ -20,6 +20,9 @@ namespace Subtitle_Renamer
     /// </summary>
     public partial class MainWindow : Window
     {
+        MediaDictionary Media = new MediaDictionary();
+        SubtitleDictionary Subtitle = new SubtitleDictionary();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -34,15 +37,22 @@ namespace Subtitle_Renamer
 
             if (openFileDialog.ShowDialog() == true)
             {
-                foreach (string filename in openFileDialog.FileNames)
+                foreach (var FileName in openFileDialog.FileNames)
                 {
-                    MediaList.Items.Add(filename);
+                    Media.AddFile(FileName);
+                }
+
+                MediaList.Items.Clear();
+                foreach (var FilePath in Media.GetFilePaths())
+                {
+                    MediaList.Items.Add(FilePath);
                 }
             }
         }
 
         private void MediaClear_Click(object sender, RoutedEventArgs e)
         {
+            Media.Clear();
             MediaList.Items.Clear();
         }
 
@@ -61,9 +71,15 @@ namespace Subtitle_Renamer
         private void MediaList_Drop(object sender, DragEventArgs e)
         {
             string[] FileNames = (string[])e.Data.GetData(DataFormats.FileDrop);
-            foreach (string filename in FileNames)
+            foreach (var FileName in FileNames)
             {
-                MediaList.Items.Add(filename);
+                Media.AddFile(FileName);
+            }
+
+            MediaList.Items.Clear();
+            foreach (var FilePath in Media.GetFilePaths())
+            {
+                MediaList.Items.Add(FilePath);
             }
         }
 
@@ -81,15 +97,22 @@ namespace Subtitle_Renamer
 
             if (openFileDialog.ShowDialog() == true)
             {
-                foreach (string filename in openFileDialog.FileNames)
+                foreach (var FileName in openFileDialog.FileNames)
                 {
-                    SubtitleList.Items.Add(filename);
+                    Subtitle.AddFile(FileName);
+                }
+
+                SubtitleList.Items.Clear();
+                foreach (var FilePath in Subtitle.GetFilePaths())
+                {
+                    SubtitleList.Items.Add(FilePath);
                 }
             }
         }
 
         private void SubtitleClear_Click(object sender, RoutedEventArgs e)
         {
+            Subtitle.Clear();
             SubtitleList.Items.Clear();
         }
 
@@ -108,9 +131,15 @@ namespace Subtitle_Renamer
         private void SubtitleList_Drop(object sender, DragEventArgs e)
         {
             string[] FileNames = (string[])e.Data.GetData(DataFormats.FileDrop);
-            foreach (string filename in FileNames)
+            foreach (var FileName in FileNames)
             {
-                SubtitleList.Items.Add(filename);
+                Subtitle.AddFile(FileName);
+            }
+
+            SubtitleList.Items.Clear();
+            foreach (var FilePath in Subtitle.GetFilePaths())
+            {
+                SubtitleList.Items.Add(FilePath);
             }
         }
 
@@ -152,8 +181,190 @@ namespace Subtitle_Renamer
         }
     }
 
+    internal static class LevenshteinDistance
+    {
+        // Compute the distance between two strings.
+        public static int Compute(string Source, string Target)
+        {
+            var SourceLength = Source.Length;
+            var TargetLength = Target.Length;
+            var Distance = new int[SourceLength + 1, TargetLength + 1];
+
+            if (SourceLength == 0)
+            {
+                return TargetLength;
+            }
+            if (TargetLength == 0)
+            {
+                return SourceLength;
+            }
+
+            for (int SourceIndex = 0; SourceIndex <= SourceLength; SourceIndex++)
+            {
+                Distance[SourceIndex, 0] = SourceIndex;
+            }
+            for (int TargetIndex = 0; TargetIndex <= TargetLength; TargetIndex++)
+            {
+                Distance[0, TargetIndex] = TargetIndex;
+            }
+
+            for (int SourceIndex = 1; SourceIndex <= SourceLength; SourceIndex++)
+            {
+                for (int TargetIndex = 1; TargetIndex <= TargetLength; TargetIndex++)
+                {
+                    var Cost = Target[TargetIndex - 1] == Source[SourceIndex - 1] ? 0 : 1;
+                    var Compare = new[]
+                    {
+                        Distance[SourceIndex - 1, TargetIndex    ] + 1,
+                        Distance[SourceIndex    , TargetIndex - 1] + 1,
+                        Distance[SourceIndex - 1, TargetIndex - 1] + Cost
+                    };
+
+                    Distance[SourceIndex, TargetIndex] = Compare.Min();
+                }
+            }
+
+            return Distance[SourceLength, TargetLength];
+        }
+    }
+
+    public abstract class FileDictionary<TKey, TValue> : Dictionary<TKey, TValue>
+    {
+        protected string GetFileNameWithoutExtension(string path)
+        {
+            var FileName = System.IO.Path.GetFileName(path);
+            var DotIndex = FileName.IndexOf('.');
+            var FileNameWithoutExtension = FileName.Substring(0, DotIndex);
+
+            return FileNameWithoutExtension;
+        }
+
+        public List<TKey> GetFileNamesWithoutExtension()
+        {
+            return new List<TKey>(Keys);
+        }
+
+        public abstract bool AddFile(TKey FilePath);
+        public abstract bool RemoveFile(TKey FilePath);
+
+        public abstract List<TKey> GetFilePaths();
+    }
+
+    public class MediaDictionary : FileDictionary<string, string>
+    {
+        public override bool AddFile(string MediaPath)
+        {
+            bool Added = false;
+
+            var MediaNameWithoutExtension = GetFileNameWithoutExtension(MediaPath);
+            var IsContains = ContainsKey(MediaNameWithoutExtension);
+
+            if (!IsContains)
+            {
+                this[MediaNameWithoutExtension] = MediaPath;
+                Added = true;
+            }
+
+            return Added;
+        }
+
+        public override bool RemoveFile(string MediaPath)
+        {
+            bool Removed = false;
+
+            var MediaNameWithoutExtension = GetFileNameWithoutExtension(MediaPath);
+            var IsContains = TryGetValue(MediaNameWithoutExtension, out string value);
+
+            if (IsContains)
+            {
+                if (MediaPath == value)
+                {
+                    Remove(MediaNameWithoutExtension);
+                    Removed = true;
+                }
+            }
+
+            return Removed;
+        }
+
+        public override List<string> GetFilePaths()
+        {
+            var FilePaths = new List<string>(Values);
+            FilePaths.Sort();
+
+            return FilePaths;
+        }
+    }
+
+    public class SubtitleDictionary : FileDictionary<string, HashSet<string>>
+    {
+        public override bool AddFile(string SubtitlePath)
+        {
+            bool Added = false;
+
+            var SubtitleNameWithoutExtension = GetFileNameWithoutExtension(SubtitlePath);
+            var IsContains = TryGetValue(SubtitleNameWithoutExtension, out HashSet<string> value);
+
+            if (!IsContains)
+            {
+                this[SubtitleNameWithoutExtension] = new HashSet<string> { SubtitlePath };
+                Added = true;
+            }
+            else
+            {
+                Added = value.Add(SubtitlePath);
+                if (Added)
+                {
+                    this[SubtitleNameWithoutExtension] = value;
+                }
+            }
+
+            return Added;
+        }
+
+        public override bool RemoveFile(string SubtitlePath)
+        {
+            bool Removed = false;
+
+            var SubtitleNameWithoutExtension = GetFileNameWithoutExtension(SubtitlePath);
+            var IsContains = TryGetValue(SubtitleNameWithoutExtension, out HashSet<string> value);
+
+            if (IsContains)
+            {
+                Removed = value.Remove(SubtitlePath);
+                if (Removed)
+                {
+                    if (value.Count == 0)
+                    {
+                        Remove(SubtitleNameWithoutExtension);
+                    }
+                    else
+                    {
+                        this[SubtitleNameWithoutExtension] = value;
+                    }
+                }
+            }
+
+            return Removed;
+        }
+
+        public override List<string> GetFilePaths()
+        {
+            var FilePaths = new List<string>();
+
+            foreach (var value in Values)
+            {
+                FilePaths.AddRange(value);
+            }
+            FilePaths.Sort();
+
+            return FilePaths;
+        }
+    }
+
     public class Matcher
     {
+
         //public enum Type
         //{
         //    Media,
@@ -203,20 +414,20 @@ namespace Subtitle_Renamer
 
         }
 
-        public string[] GetMediaFiles()
-        {
+        //public string[] GetMediaFiles()
+        //{
 
-        }
+        //}
 
-        public string[] GetSubtitleFiles()
-        {
+        //public string[] GetSubtitleFiles()
+        //{
 
-        }
+        //}
 
-        public string[] GetRenameFiles()
-        {
+        //public string[] GetRenameFiles()
+        //{
 
-        }
+        //}
 
         public bool MediaUpdated()
         {
