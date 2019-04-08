@@ -254,37 +254,30 @@ namespace Subtitle_Renamer
     {
         public override bool AddFile(string MediaPath)
         {
-            bool Added = false;
-
             var MediaNameWithoutExtension = GetFileNameWithoutExtension(MediaPath);
-            var IsContains = ContainsKey(MediaNameWithoutExtension);
+            TryGetValue(MediaNameWithoutExtension, out string value);
 
-            if (!IsContains)
+            if (MediaPath != value)
             {
                 this[MediaNameWithoutExtension] = MediaPath;
-                Added = true;
+                return true;
             }
 
-            return Added;
+            return false;
         }
 
         public override bool RemoveFile(string MediaPath)
         {
-            bool Removed = false;
-
             var MediaNameWithoutExtension = GetFileNameWithoutExtension(MediaPath);
-            var IsContains = TryGetValue(MediaNameWithoutExtension, out string value);
+            TryGetValue(MediaNameWithoutExtension, out string value);
 
-            if (IsContains)
+            if (MediaPath == value)
             {
-                if (MediaPath == value)
-                {
-                    Remove(MediaNameWithoutExtension);
-                    Removed = true;
-                }
+                Remove(MediaNameWithoutExtension);
+                return true;
             }
 
-            return Removed;
+            return false;
         }
 
         public override List<string> GetFilePaths()
