@@ -46,7 +46,7 @@ namespace Subtitle_Renamer.Tests
 
             };
 
-            MediaFiles.AddFiles()
+            MediaFiles.AddFiles();
             Assert.Fail();
         }
 

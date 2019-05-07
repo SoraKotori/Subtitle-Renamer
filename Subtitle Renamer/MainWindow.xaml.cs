@@ -293,26 +293,18 @@ namespace Subtitle_Renamer
     {
         public override bool AddFile(string SubtitlePath)
         {
-            bool Added = false;
-
             var SubtitleNameWithoutExtension = GetFileNameWithoutExtension(SubtitlePath);
             var IsContains = TryGetValue(SubtitleNameWithoutExtension, out HashSet<string> value);
 
             if (!IsContains)
             {
                 this[SubtitleNameWithoutExtension] = new HashSet<string> { SubtitlePath };
-                Added = true;
+                return true;
             }
             else
             {
-                Added = value.Add(SubtitlePath);
-                if (Added)
-                {
-                    this[SubtitleNameWithoutExtension] = value;
-                }
+                return value.Add(SubtitlePath);
             }
-
-            return Added;
         }
 
         public override bool RemoveFile(string SubtitlePath)
@@ -330,10 +322,6 @@ namespace Subtitle_Renamer
                     if (value.Count == 0)
                     {
                         Remove(SubtitleNameWithoutExtension);
-                    }
-                    else
-                    {
-                        this[SubtitleNameWithoutExtension] = value;
                     }
                 }
             }
