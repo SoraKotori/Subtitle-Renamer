@@ -5,32 +5,41 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Subtitle_Renamer"
         mc:Ignorable="d"
-        Title="Subtitle Renamer" Height="450" Width="800">
+        Title="Subtitle Renamer" Height="720" Width="1280">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" MinHeight="35"/>
-            <RowDefinition Height="auto" MinHeight="39"/>
-            <RowDefinition/>
-            <RowDefinition Height="auto" MinHeight="39"/>
+            <RowDefinition Height="Auto" MinHeight="24"/>
+            <RowDefinition Height="Auto" MinHeight="22"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="32"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <Label Content="MediaFiles" HorizontalAlignment="Left" Margin="10,10,0,0"  Height="25" Width="80"/>
-        <Button Content="OpenFile" HorizontalAlignment="Left" Width="75" Margin="10,10,0,10" Click="MediaOpen_Click" Grid.Row="1"/>
-        <Button Content="ClearAll" HorizontalAlignment="Left" Width="75" Margin="90,10,0,10" Click="MediaClear_Click" Grid.Row="1"/>
-        <ListBox Name="MediaList" Margin="10" DragEnter="MediaList_DragEnter" Drop="MediaList_Drop" Loaded="MediaList_Loaded" Grid.Row="2"/>
+        <Label Content="MediaFiles" HorizontalAlignment="Left" Margin="10,0,0,0" Width="80" Height="25" VerticalAlignment="Top"/>
+        <Button Content="OpenFile" HorizontalAlignment="Left" Width="75" Margin="10,25,0,0" Click="MediaOpen_Click" Grid.RowSpan="2"/>
+        <Button Content="ClearAll" HorizontalAlignment="Left" Width="75" Margin="90,25,0,0" Click="MediaClear_Click" Grid.RowSpan="2"/>
+        <ListBox Name="MediaList" Margin="10,10,10,10" DragEnter="MediaList_DragEnter" Drop="MediaList_Drop" Loaded="MediaList_Loaded" Grid.Row="2"/>
 
-        <Label Content="SubtitleFiles" HorizontalAlignment="Left" Margin="10,10,0,0"  Height="25" Width="80" Grid.Column="2"/>
-        <Button Content="OpenFile" HorizontalAlignment="Left" Width="75" Margin="10,10,0,10" Click="SubtitleOpen_Click" Grid.Row="1" Grid.Column="2"/>
-        <Button Content="ClearAll" HorizontalAlignment="Left" Width="75" Margin="90,10,0,10" Click="SubtitleClear_Click" Grid.Row="1" Grid.Column="2"/>
-        <ListBox Name="SubtitleList" Margin="10" DragEnter="SubtitleList_DragEnter" Drop="SubtitleList_Drop" Loaded="SubtitleList_Loaded" Grid.Row="2" Grid.Column="2"/>
+        <Label Content="SubtitleFiles" HorizontalAlignment="Left" Margin="10,0,0,0" Width="80" Grid.Column="1" Height="25" VerticalAlignment="Top"/>
+        <Button Content="OpenFile" HorizontalAlignment="Left" Width="75" Margin="10,25,0,0" Click="SubtitleOpen_Click" Grid.Column="1" Grid.RowSpan="2"/>
+        <Button Content="ClearAll" HorizontalAlignment="Left" Width="75" Margin="90,25,0,0" Click="SubtitleClear_Click" Grid.Column="1" Grid.RowSpan="2"/>
+        <ListBox Name="SubtitleList" Margin="10,10,10,10" DragEnter="SubtitleList_DragEnter" Drop="SubtitleList_Drop" Loaded="SubtitleList_Loaded" Grid.Row="2" Grid.Column="1"/>
 
-        <Button Content="Convert" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="Convert_Click" Grid.Row="3"/>
-        <CheckBox Name="Postfix" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Margin="90,10,0,0" Grid.Row="3" Height="19" Width="60" IsChecked="True">
-            <TextBlock Text="Postfix" VerticalAlignment="Center" />
-        </CheckBox>
+        <ListView Name="Previex_View" Margin="10,5,10,10" Grid.Row="3" Grid.ColumnSpan="2">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="MediaPath" Width="620" DisplayMemberBinding="{Binding MediaPath}"/>
+                    <GridViewColumn Header="SubtitlePath" Width="620" DisplayMemberBinding="{Binding SubtitlePath}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Button Content="Preview" HorizontalAlignment="Left" Width="75" Margin="10,0,0,10" Click="Preview_Click" Grid.Row="4" Grid.ColumnSpan="2"/>
+        <Button Content="Convert" HorizontalAlignment="Left" Width="75" Margin="155,0,0,10" Click="Convert_Click" Grid.Row="4" Grid.ColumnSpan="2"/>
+        <CheckBox Content="Postfix" HorizontalAlignment="Left" Margin="90,4.4,0,10" IsChecked="True" Name="Postfix" Grid.Row="4" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

@@ -27,26 +27,6 @@ namespace Subtitle_Renamer.Tests
         [TestMethod()]
         public void AddFilesTest()
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Multiselect = true
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                foreach (string filename in openFileDialog.FileNames)
-                {
-                    MediaList.Items.Add(filename);
-                }
-            }
-
-            var MediaFiles = new MediaDictionary();
-            string[] FilePaths =
-            {
-
-            };
-
-            MediaFiles.AddFiles();
             Assert.Fail();
         }
 
